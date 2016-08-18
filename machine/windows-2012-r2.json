@@ -1,0 +1,58 @@
+{
+  "variables": {
+    "iso_url": "../isos/9600.17050.WINBLUE_REFRESH.140317-1640_X64FRE_SERVER_EVAL_EN-US-IR3_SSS_X64FREE_EN-US_DV9.ISO",
+    "iso_checksum_type": "md5",
+    "iso_checksum": "b391a267949518ed6bb69f908f252076",
+    "disk_size": "61440"
+  },
+  "builders": [{
+    "name": "windows-2012-R2-core",
+
+    "type": "qemu",
+    "format":"qcow2",
+    "accelerator": "kvm",
+
+    "disk_size": "{{ user `disk_size`}}",
+    "disk_interface":"virtio",
+    "disk_compression": "true",
+
+    "iso_url": "{{user `iso_url`}}",
+    "iso_checksum_type": "{{user `iso_checksum_type`}}",
+    "iso_checksum": "{{user `iso_checksum`}}",
+
+    "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\"",
+    "boot_wait": "2m",
+    "headless": false,
+
+    "communicator": "winrm",
+    "winrm_username": "vagrant",
+    "winrm_password": "vagrant",
+    "winrm_timeout": "10000s",
+
+    "floppy_files": [
+      "floppy/drivers/virtio-win-0.1.117/viostor/2k12R2/amd64/*",
+      "floppy/drivers/virtio-win-0.1.117/NetKVM/2k12R2/amd64/*",
+      "floppy/common/*",
+      "floppy/windows-2012-r2/*"
+    ],
+
+    "qemuargs": [
+        [ "-m", "4048M" ],
+        [ "-cpu", "Westmere" ],
+        [ "-nographic" ]
+    ]
+  }],
+
+  "provisioners": [{
+    "type": "windows-shell",
+    "scripts": [
+      "scripts/unlimited-password-expiration.bat",
+      "scripts/enable-rdp.bat",
+      "scripts/uac-disable.bat",
+      "scripts/disablewinupdate.bat",
+      "scripts/disable-hibernate.bat",
+      "scripts/firewall-open-ping.bat",
+      "scripts/firewall-open-rdp.bat"
+    ]
+  }]
+}
