@@ -1,0 +1,12 @@
+[Unit]
+Description=Registrator service
+After=network.target docker.service setup-network-environment.service consul.service
+Requires=docker.service setup-network-environment.service consul.service
+
+[Service]
+EnvironmentFile=/etc/network-environment
+ExecStartPre=-/usr/bin/docker rm -f registrator
+ExecStart=/usr/bin/docker run --name=registrator --net=host --volume=/var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator consul://${DEFAULT_IPV4}:8500
+ExecStop=/usr/bin/docker stop registrator
+Restart=on-failure
+RestartSec=5

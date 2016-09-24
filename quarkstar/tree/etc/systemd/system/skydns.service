@@ -1,0 +1,23 @@
+[Unit]
+Description=skydns
+After=setup-network-environment.service docker.service etcd.service
+Requires=setup-network-environment.service docker.service etcd.service
+
+[Service]
+EnvironmentFile=/etc/network-environment
+EnvironmentFile=/etc/skydns/skydns.env
+ExecStartPre=-/usr/bin/docker rm -f skydns
+ExecStart=/usr/bin/docker run --privileged \
+ --net=host --rm \
+ --name=skydns \
+ -e ETCD_MACHINES=${ETCD_MACHINES} \
+ -e SKYDNS_DOMAIN=${SKYDNS_DOMAIN} \
+ -e SKYDNS_ADDR=${SKYDNS_ADDR} \
+ -e SKYDNS_NAMESERVERS=${SKYDNS_NAMESERVERS} \
+ skynetservices/skydns:latest
+ExecStop=-/usr/bin/docker stop skydns
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

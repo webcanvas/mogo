@@ -1,0 +1,17 @@
+[Unit]
+Description=calico-node
+After=setup-network-environment.service docker.service etcd.service
+Requires=setup-network-environment.service docker.service etcd.service
+
+[Service]
+EnvironmentFile=/etc/network-environment
+EnvironmentFile=/etc/calico/calico.env
+ExecStartPre=-/usr/bin/docker rm -f calico-node
+ExecStartPre=/usr/bin/calicoctl pool add 192.168.2.0/24 --nat-outgoing
+ExecStart=/usr/bin/calicoctl node --detach=false
+ExecStop=-/usr/bin/docker stop calico-node
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
