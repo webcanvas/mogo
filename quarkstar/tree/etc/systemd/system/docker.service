@@ -1,11 +1,10 @@
 [Unit]
 Description=Docker Application Container Engine
 Documentation=https://docs.docker.com
-After=network.target docker.socket setup-network-environment.service
-Requires=docker.socket setup-network-environment.service
+After=network.target docker.socket
+Requires=docker.socket
 
 [Service]
-EnvironmentFile=/etc/network-environment
 EnvironmentFile=/etc/default/docker
 Type=notify
 ExecStart=/usr/bin/dockerd \
@@ -14,8 +13,8 @@ ExecStart=/usr/bin/dockerd \
   $DOCKER_OPTS \
   --storage-driver=overlay \
   --log-driver=journald \
-  --cluster-store=etcd://${DEFAULT_IPV4}:2379 \
-  --cluster-advertise=${DEFAULT_IPV4}:2375
+  --cluster-store=etcd://localhost:2379 \
+  --cluster-advertise=enp3s0:2375
 MountFlags=slave
 LimitNOFILE=1048576
 LimitNPROC=1048576

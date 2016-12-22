@@ -1,0 +1,21 @@
+[Unit]
+Description=vault
+After=docker.service etcd.service
+Requires=docker.service etcd.service
+
+[Service]
+EnvironmentFile=/etc/etcd/etcd.env
+ExecStartPre=-/usr/bin/docker rm -f vault
+ExecStart=/usr/bin/docker run --name=vault \
+  --net=host --rm \
+  --cap-add=IPC_LOCK \
+  -e ETCD_ADDR=${ETCD_ADDR} \
+  -v /etc/etcd:/etc/etcd \
+  -v /etc/vault:/vault/config \
+  vault server
+ExecStop=-/usr/bin/docker stop vault
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

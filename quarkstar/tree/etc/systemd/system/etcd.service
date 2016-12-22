@@ -1,27 +1,19 @@
 [Unit]
 Description=ETCD Docker Container
 Documentation=https://coreos.com/etcd/docs/latest/docker_guide.html
-After=network.target docker.service setup-network-environment.service
-Requires=docker.service setup-network-environment.service
+After=network.target docker.service
+Requires=docker.service
 
 [Service]
-EnvironmentFile=/etc/network-environment
 ExecStartPre=-/usr/bin/docker rm -f etcd
 ExecStart=/usr/bin/docker run --name=etcd \
   --net=host --rm \
-  -v /usr/share/ca-certificates/:/etc/ssl/certs \
-  -p 2379:2379/tcp \
-  -p 2380:2380/tcp \
-  -p 4001:4001/tcp \
-  quay.io/coreos/etcd /usr/local/bin/etcd \
-  --name etcd0 \
-  -initial-advertise-peer-urls http://${DEFAULT_IPV4}:2380 \
-  -listen-peer-urls http://0.0.0.0:2380 \
-  -listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
-  -advertise-client-urls http://${DEFAULT_IPV4}:2379 \
-  -initial-cluster-token etcd-cluster \
-  -initial-cluster etcd0=http://${DEFAULT_IPV4}:2380 \
-  -initial-cluster-state new
+  -e ETCD_NAME=etcd0 \
+  -e ETCD_INITIAL_CLUSTER=etcd0=http://localhost:2380 \
+  -e ETCD_DATA_DIR=/data/etcd0.etcd \
+  -v /var/etcd:/data/etcd0.etcd \
+  quay.io/coreos/etcd:v3.0.15
+ExecStop=-/usr/bin/docker stop etcd
 Restart=on-failure
 RestartSec=5s
 
