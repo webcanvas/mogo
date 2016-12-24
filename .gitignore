@@ -3,3 +3,6 @@
 
 packer_cache
 isos
+
+# Never use bin files
+quarkstar/tree/usr
