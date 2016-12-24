@@ -5,11 +5,11 @@ After=nfs-utils.service
 Before=docker.service
 Requires=nfs-utils.service
 
-
 [Service]
 EnvironmentFile=/etc/docker/netshare.env
 ExecStart=/usr/bin/docker-volume-netshare $DKV_NETSHARE_OPTS
-StandardOutput=syslog
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
