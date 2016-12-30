@@ -1,0 +1,28 @@
+[Unit]
+Description=traefik docker proxy
+Wants=docker.service calico-node.service
+After=docker.service calico-node.service
+Requires=docker.service calico-node.service
+
+[Service]
+TimeoutStartSec=20m
+Restart=on-failure
+EnvironmentFile=-/etc/sysconfig/%p/run
+ExecStartPre=-/usr/bin/docker kill %p
+ExecStartPre=-/usr/bin/docker rm -f %p
+ExecStart=/bin/bash -c \
+  "/usr/bin/docker run --rm --name %p --net frontend --ip 192.168.64.2 \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    -v /etc/traefik/traefik.toml:/etc/traefik/traefik.toml \
+    -v /etc/traefik/acme.json:/acme.json \
+    -p 80:80 \
+    -p 443:443 \
+    -p 8888:8888 \
+    -l traefik.port=8888 \
+    --hostname %p \
+    traefik:latest"
+ExecStop=-/usr/bin/docker stop %p
+ExecReload=/usr/bin/docker restart %p
+
+[Install]
+WantedBy=multi-user.target
