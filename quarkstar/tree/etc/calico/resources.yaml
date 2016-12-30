@@ -3,4 +3,41 @@
   kind: ipPool
   metadata:
     cidr: 192.168.64.0/24
-  spec: {}
+- apiVersion: v1
+  kind: ipPool
+  metadata:
+    cidr: 192.168.65.0/24
+- apiVersion: v1
+  kind: profile
+  metadata:
+    name: frontend
+    labels:
+      role: frontend
+- apiVersion: v1
+  kind: profile
+  metadata:
+    name: services
+    labels:
+      role: services
+- apiVersion: v1
+  kind: policy
+  metadata:
+    name: frontend
+  spec:
+    order: 0
+    selector: role == 'frontend'
+    egress:
+    - action: allow
+    ingress:
+    - action: allow
+- apiVersion: v1
+  kind: policy
+  metadata:
+    name: services
+  spec:
+    order: 0
+    selector: role == 'services'
+    egress:
+    - action: allow
+    ingress:
+    - action: allow

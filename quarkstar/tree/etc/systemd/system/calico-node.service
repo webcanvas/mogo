@@ -1,7 +1,7 @@
 [Unit]
 Description=calico-node
-After=docker.service
-Requires=docker.service
+After=docker.service network-online.target
+Requires=docker.service network-online.target
 
 [Service]
 EnvironmentFile=/etc/calico/calico.env
@@ -26,7 +26,8 @@ ExecStart=/usr/bin/docker run --net=host --privileged \
  -v /var/run/docker.sock:/var/run/docker.sock \
  calico/node:v1.0.0
 ExecStartPost=/usr/bin/calicoctl apply -f /etc/calico/resources.yaml
-ExecStartPost=-/usr/bin/docker network create --driver calico --ipam-driver calico-ipam --subnet=192.168.64.0/24 services
+ExecStartPost=-/usr/bin/docker network create --driver calico --ipam-driver calico-ipam --subnet=192.168.64.0/24 frontend
+ExecStartPost=-/usr/bin/docker network create --driver calico --ipam-driver calico-ipam --subnet=192.168.65.0/24 services
 ExecStop=-/usr/bin/docker stop calico-node
 Restart=on-failure
 RestartSec=5s
