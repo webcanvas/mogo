@@ -3,10 +3,14 @@
   kind: ipPool
   metadata:
     cidr: 192.168.64.0/24
+  spec:
+    nat-outgoing: true
 - apiVersion: v1
   kind: ipPool
   metadata:
     cidr: 192.168.65.0/24
+  spec:
+    nat-outgoing: true
 - apiVersion: v1
   kind: profile
   metadata:
