@@ -1,5 +1,5 @@
 [Unit]
-Description=Plex media server
+Description=Sonarr
 Wants=docker.service network-online.target
 Requires=docker.service calico-node.service docker-volume-netshare.service
 After=sabnzbd.service
@@ -7,26 +7,23 @@ After=sabnzbd.service
 [Service]
 TimeoutStartSec=20m
 Restart=always
-EnvironmentFile=/etc/plex/plex.env
-EnvironmentFile=-/etc/sysconfig/%p/run
+EnvironmentFile=/etc/sonarr/sonarr.env
+ExecStartPre=/usr/bin/docker volume create --name downloads-tv
 ExecStartPre=/usr/bin/docker volume create -d nfs --name %p -o share=${NFS_SHARE}
 ExecStartPre=-/usr/bin/docker kill %p
 ExecStartPre=-/usr/bin/docker rm -f %p
 ExecStart=/bin/bash -c \
   "/usr/bin/docker run --rm --name %p --net services \
-    -v %p:/data \
-    -v /etc/plex/config:/config \
-    -v /etc/timezone:/etc/timezone:ro \
-    -v /etc/localtime:/etc/localtime:ro \
-    -p 32400:32400 -p 1900:1900/udp -p 3005:3005 \
-    -p 5353:5353/udp -p 8324:8324 -p 32410:32410/udp \
-    -p 32411:32411/udp -p 32412:32412/udp \
-    -p 32413:32413/udp -p 32414:32414/udp \
-    -p 32469:32469 -p 33400:33400 \
-    -l traefik.port=32400 \
-    --cap-add=NET_ADMIN \
+    -v /dev/rtc:/dev/rtc:ro \
+    -v /etc/%p/config:/config \
+    -v %p:/tv \
+    -v downloads-tv:/downloads/tv \
+    -p 8989:8989 \
+    -e PUID=0 \
+    -e PGID=0 \
+    -l traefik.port=8989 \
     --hostname %p \
-    timhaak/plex:plexpass"
+    linuxserver/sonarr"
 ExecStop=-/usr/bin/docker stop %p
 ExecReload=/usr/bin/docker restart %p
 

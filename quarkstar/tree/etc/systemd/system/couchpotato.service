@@ -1,0 +1,30 @@
+[Unit]
+Description=Couchpotato docker container
+Wants=docker.service network-online.target
+Requires=docker.service calico-node.service docker-volume-netshare.service
+After=sabnzbd.service
+
+[Service]
+TimeoutStartSec=20m
+Restart=on-failure
+EnvironmentFile=/etc/couchpotato/couchpotato.env
+ExecStartPre=/usr/bin/docker volume create --name downloads-movies
+ExecStartPre=/usr/bin/docker volume create -d nfs --name %p -o share=${NFS_SHARE}
+ExecStartPre=-/usr/bin/docker kill %p
+ExecStartPre=-/usr/bin/docker rm -f %p
+ExecStart=/bin/bash -c \
+  "/usr/bin/docker run --rm --name %p --net services \
+    -v /etc/%p/config:/config \
+    -v %p:/tv \
+    -v downloads-movies:/downloads/movies \
+    -e PUID=0 \
+    -e PGID=0 \
+    -e TZ=Australia/Sydney \
+    -p 5050:5050 \
+    -l traefik.port=5050 \
+    linuxserver/couchpotato"
+ExecStop=/usr/bin/docker stop %p
+ExecReload=/usr/bin/docker restart %p
+
+[Install]
+WantedBy=multi-user.target

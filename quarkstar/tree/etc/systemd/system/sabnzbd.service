@@ -1,0 +1,50 @@
+[Unit]
+Description=sabnzbd nzb downloader with vpn
+Wants=docker.service network-online.target
+Requires=docker.service calico-node.service
+After=docker.service calico-node.service
+
+[Service]
+TimeoutStartSec=20m
+Restart=on-failure
+EnvironmentFile=-/etc/sysconfig/%p/run
+ExecStartPre=/usr/bin/docker volume create --name %p
+ExecStartPre=/usr/bin/docker volume create --name downloads-tv
+ExecStartPre=/usr/bin/docker volume create --name downloads-music
+ExecStartPre=/usr/bin/docker volume create --name downloads-movies
+ExecStartPre=-/usr/bin/docker kill %p
+ExecStartPre=-/usr/bin/docker rm -f %p
+ExecStart=/bin/bash -c \
+  "/usr/bin/docker run --rm --name %p --net services \
+    --cap-add=NET_ADMIN \
+    --env-file /etc/sysconfig/%p/env \
+    -v %p:/data \
+    -v downloads-tv:/downloads/tv \
+    -v downloads-music:/downloads/music \
+    -v downloads-movies:/downloads/movies \
+    -v /etc/sabnzbd/config:/config \
+    -v /etc/localtime:/etc/localtime:ro \
+    -e VPN_ENABLED=yes \
+    -e VPN_PROV=pia \
+    -e VPN_REMOTE=aus.privateinternetaccess.com \
+    -e VPN_PORT=1198 \
+    -e VPN_PROTOCOL=udp \
+    -e VPN_DEVICE_TYPE=tun \
+    -e STRONG_CERTS=no \
+    -e ENABLE_PRIVOXY=yes \
+    -e LAN_NETWORK=192.168.65.0/24 \
+    -e NAME_SERVERS=8.8.8.8,8.8.4.4 \
+    -e ADDITIONAL_PORTS=8081 \
+    -e DEBUG=false \
+    -e PUID=0 \
+    -e PGID=0 \
+    -p 8118:8118 \
+    -p 8080:8080 \
+    -p 8090:8090 \
+    -l traefik.port=8080 \
+    binhex/arch-sabnzbdvpn"
+ExecStop=/usr/bin/docker stop %p
+ExecReload=/usr/bin/docker restart %p
+
+[Install]
+WantedBy=multi-user.target
